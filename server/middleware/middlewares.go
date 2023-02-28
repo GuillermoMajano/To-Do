@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -42,14 +43,21 @@ func createDBInstance() {
 
 	fmt.Println("Connected to mongodb")
 
-	client.Database(dbName).Collection(collectName)
+	collection := client.Database(dbName).Collection(collectName)
+	fmt.Println("Collection instance created")
 }
 
 func Task() {}
 
-func GetAllTasks(w http.ResponseWriter, r *http.Request) {}
+func GetAllTasks(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Context-Type", "application/x-www-form urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	payload := getAllTasks()
+	json.NewEncoder(w).Encode(payload)
 
-func CreateTask() {}
+}
+
+func CreateTask( w http.ResponseWriter, r *http.Request)) {}
 
 func UndoTask() {}
 
