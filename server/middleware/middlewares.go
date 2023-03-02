@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -47,7 +48,18 @@ func createDBInstance() {
 	fmt.Println("Collection instance created")
 }
 
-func Task() {}
+func TaskComplete(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Context-Type", "application/x-www-form urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "PUT")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	params := mux.Vars(r)
+
+	TastComplete(params["id"])
+	json.NewEncoder(w).Encode(params["id"])
+
+}
 
 func GetAllTasks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Context-Type", "application/x-www-form urlencoded")
@@ -57,7 +69,15 @@ func GetAllTasks(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func CreateTask( w http.ResponseWriter, r *http.Request)) {}
+func CreateTask(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Context-Type", "application/x-www-form urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+}
+
+func TaskComplete(task string) {}
 
 func UndoTask() {}
 
