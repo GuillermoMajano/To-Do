@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/GuillermoMajano/todo-app/models"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,7 +17,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var collector *mongo.Collection
+var collection *mongo.Collection
 
 func init() {
 	loadTheEnv()
@@ -46,7 +47,7 @@ func createDBInstance() {
 
 	fmt.Println("Connected to mongodb")
 
-	collection := client.Database(dbName).Collection(collectName)
+	collection = client.Database(dbName).Collection(collectName)
 	fmt.Println("Collection instance created")
 }
 
@@ -58,7 +59,7 @@ func TaskComplete(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 
-	TastComplete(params["id"])
+	taskComplete(params["id"])
 	json.NewEncoder(w).Encode(params["id"])
 
 }
@@ -79,7 +80,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func TaskComplete(task string) {
+func taskComplete(task string) {
 
 	id, _ := primitive.ObjectIDFromHex(task)
 	filter := bson.M{"id": id}
@@ -102,7 +103,7 @@ func UndoTask(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 
-	UndoTask(params["id"])
+	undoTask(params["id"])
 
 	json.NewEncoder(w).Encode(params["id"])
 }
@@ -111,7 +112,7 @@ func DeleteTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Control-Type", "application/x-www-form-urlencoded")
 	w.Header().Set("Access-Control-Origin", "*")
 
-	td := deleteAlltask()
+	td := deleteAllTask()
 
 	json.NewEncoder(w).Encode(td)
 }
@@ -141,11 +142,54 @@ func getAllTasks() []primitive.M {
 		log.Fatal(err)
 	}
 
-	curl.Close()
+	cur.Close(context.Background())
 
 	return results
 }
 
-func deleteOneTask(task Todo) {}
+func insertOneTask(task models.ToDoList) {
+	insertResult, err := collection.InsertOne(context.Background(), task)
 
-func deleteAllTask(task Todo) {}
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Inserted a Single Task", insertResult)
+}
+
+func undoTask(task string) {
+	id, _ := primitive.ObjectIDFromHex(task)
+	filter := bson.M{"id": id}
+	update := bson.M{"$set": bson.M{"status": true}}
+
+	result, err := collection.UpdateOne(context.Background(), filter, update)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Element undo", result)
+
+}
+
+func deleteOneTask(task string) {
+	id, _ := primitive.ObjectIDFromHex(task)
+	filter := bson.M{"id": id}
+
+	d, err := collection.DeleteOne(context.Background(), filter)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("One Element was insert", d)
+}
+
+func deleteAllTask() int64 {
+	d, err := collection.DeleteMany(context.Background(), "")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	return d.DeletedCount
+}
